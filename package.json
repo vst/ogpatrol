@@ -17,5 +17,8 @@
   "devDependencies": {
     "typescript": "^5.5.4",
     "wxt": "^0.19.1"
+  },
+  "dependencies": {
+    "open-graph-scraper-lite": "^2.1.0"
   }
 }

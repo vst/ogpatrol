@@ -1,3 +1,5 @@
+import ogs from "open-graph-scraper-lite";
+
 export default defineBackground(() => {
   browser.tabs.onActivated.addListener(({ tabId }) => {
     process(tabId);
@@ -33,12 +35,26 @@ async function process(tabId: number) {
   // Cool, we have a nice tab!
   console.log("Tab activated:", url, hostname);
 
+  // Get the HTML content:
   const [{ result }] = await browser.scripting.executeScript({
     target: { tabId },
     func: () => {
-      return document.documentElement.outerHTML;
+      return document.head.innerHTML;
     },
   });
 
-  console.log(result);
+  // Attempt to parse the OpenGraph data:
+  ogs({ html: result })
+    .then(({ error, result }) => {
+      if (error) {
+        console.error("Error while trying to extract OpenGraph data.");
+        return;
+      }
+
+      // We should have the OpenGraph data now:
+      console.log("OpenGraph data is extracted successfully.", result);
+    })
+    .catch((error) => {
+      console.error("Error while trying to extract OpenGraph data.", error);
+    });
 }
