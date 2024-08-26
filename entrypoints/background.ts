@@ -14,11 +14,15 @@ export default defineBackground(() => {
 });
 
 export async function process(tabId: number): Promise<void> {
+  // Reset the icon:
+  setIcon();
+
   // Attempt to parse OpenGraph data from the tab content:
   const result = await parse(tabId);
 
   // Handle the result:
   console.log(result);
+  setIcon(result);
 }
 
 export async function parse(tabId: number): Promise<ParseResult> {
@@ -92,3 +96,39 @@ export type ParseResultError = {
 export type ParseResultNotApplicable = {
   status: "not-applicable";
 };
+
+export const ICONS = {
+  default: {
+    16: "icon/16.png",
+    32: "icon/32.png",
+    48: "icon/48.png",
+    96: "icon/96.png",
+    128: "icon/128.png",
+  },
+  success: {
+    16: "icon/16_success.png",
+    32: "icon/32_success.png",
+    48: "icon/48_success.png",
+    96: "icon/96_success.png",
+    128: "icon/128_success.png",
+  },
+  error: {
+    16: "icon/16_error.png",
+    32: "icon/32_error.png",
+    48: "icon/48_error.png",
+    96: "icon/96_error.png",
+    128: "icon/128_error.png",
+  },
+  "not-applicable": {
+    16: "icon/16.png",
+    32: "icon/32.png",
+    48: "icon/48.png",
+    96: "icon/96.png",
+    128: "icon/128.png",
+  },
+};
+
+export async function setIcon(result?: ParseResult) {
+  const path = ICONS[result?.status ?? "default"];
+  (browser.action ?? browser.browserAction).setIcon({ path });
+}
