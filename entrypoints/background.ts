@@ -1,5 +1,9 @@
+import {
+  ParseResult,
+  ParseResultError,
+  ParseResultSuccess,
+} from "@/utils/types";
 import ogs from "open-graph-scraper-lite";
-import type { SuccessResult } from "open-graph-scraper-lite";
 
 export default defineBackground(() => {
   browser.tabs.onActivated.addListener(({ tabId }) => {
@@ -75,27 +79,6 @@ export async function parse(tabId: number): Promise<ParseResult> {
   // Return the result:
   return result;
 }
-
-export type OgObject = SuccessResult["result"];
-
-export type ParseResult =
-  | ParseResultSuccess
-  | ParseResultError
-  | ParseResultNotApplicable;
-
-export type ParseResultSuccess = {
-  status: "success";
-  ogdata: OgObject;
-};
-
-export type ParseResultError = {
-  status: "error";
-  ogdata?: OgObject;
-};
-
-export type ParseResultNotApplicable = {
-  status: "not-applicable";
-};
 
 export const ICONS = {
   default: {
