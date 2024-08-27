@@ -1,3 +1,4 @@
+import { registerService } from "@/utils/service";
 import {
   ParseResult,
   ParseResultError,
@@ -6,18 +7,24 @@ import {
 import ogs from "open-graph-scraper-lite";
 
 export default defineBackground(() => {
+  // Open extension database:
+  const db = openExtensionDatabase();
+
+  // Register our service:
+  const service = registerService(db);
+
   browser.tabs.onActivated.addListener(({ tabId }) => {
-    process(tabId);
+    process(service, tabId);
   });
 
   browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
     if (changeInfo?.status === "complete") {
-      process(tabId);
+      process(service, tabId);
     }
   });
 });
 
-export async function process(tabId: number): Promise<void> {
+export async function process(service: Service, tabId: number): Promise<void> {
   // Reset the icon:
   setIcon();
 
@@ -25,8 +32,12 @@ export async function process(tabId: number): Promise<void> {
   const result = await parse(tabId);
 
   // Handle the result:
-  console.log(result);
   setIcon(result);
+
+  // Store the result in the database:
+  if (result.status === "success") {
+    service.upsert(result);
+  }
 }
 
 export async function parse(tabId: number): Promise<ParseResult> {
@@ -69,7 +80,11 @@ export async function parse(tabId: number): Promise<ParseResult> {
       }
 
       // Return with success:
-      return { status: "success", ogdata: result } as ParseResultSuccess;
+      return {
+        status: "success",
+        source: url,
+        ogdata: result,
+      } as ParseResultSuccess;
     })
     .catch((error) => {
       console.error("Error while trying to extract OpenGraph data.", error);

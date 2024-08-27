@@ -19,6 +19,8 @@
     "wxt": "^0.19.1"
   },
   "dependencies": {
+    "@webext-core/proxy-service": "^1.2.0",
+    "idb": "^8.0.0",
     "open-graph-scraper-lite": "^2.1.0"
   }
 }

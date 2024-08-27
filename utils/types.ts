@@ -9,6 +9,7 @@ export type ParseResult =
 
 export type ParseResultSuccess = {
   status: "success";
+  source: string;
   ogdata: OgObject;
 };
 
