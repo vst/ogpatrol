@@ -1,24 +1,66 @@
-import './style.css';
-import typescriptLogo from '@/assets/typescript.svg';
-import viteLogo from '/wxt.svg';
-import { setupCounter } from '@/components/counter';
+import "./style.css";
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://wxt.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="WXT logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>WXT + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the WXT and TypeScript logos to learn more
-    </p>
-  </div>
-`;
+// Get HTML elements of interest via declaration:
+declare const message: HTMLDivElement;
+declare const ogImage: HTMLDivElement;
+declare const ogProps: HTMLDivElement;
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!);
+// Get our service:
+const SERVICE = getService();
+
+// Query the active tab and work on it:
+browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+  // Clear content slots:
+  message.innerHTML = "";
+  ogImage.innerHTML = "";
+  ogProps.innerHTML = "";
+
+  // We should have a single tab here:
+  const tab = tabs[0];
+
+  // Make sure that we have a tab:
+  if (!tab) {
+    return;
+  }
+
+  // Attempt to get the tab URL;
+  const url = tab.url ?? tab.pendingUrl;
+
+  // Make sure that we have a URL:
+  if (!url) {
+    return;
+  }
+
+  // Attempt to find and render the record for the URL:
+  renderOpenGraphData(url);
+});
+
+async function renderOpenGraphData(url: string) {
+  // Show loading message:
+  message.innerHTML = "Loading...";
+
+  // Find record for the current page:
+  const record = await SERVICE.find(url);
+
+  // Remove loading message:
+  message.removeChild(message.firstChild!);
+
+  // Check if we have a record:
+  if (!record) {
+    message.innerHTML = "No OpenGraph record found for this page.";
+    return;
+  }
+
+  // Render images if any:
+  record.ogdata.ogImage?.forEach((image) => {
+    const img = document.createElement("img");
+    img.src = image.url;
+    img.alt = image.alt ?? "";
+    ogImage.appendChild(img);
+  });
+
+  // Render properties:
+  const pre = document.createElement("pre");
+  pre.innerHTML = JSON.stringify(record, null, 2);
+  ogProps.appendChild(pre);
+}
